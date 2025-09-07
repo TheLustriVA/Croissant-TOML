@@ -1,11 +1,11 @@
-# Croissant TOML Converter
+# Create README.md
+readme_content = '''# Croissant TOML Converter
 
 A Python tool for converting between [Croissant/Croissant-RAI](https://github.com/mlcommons/croissant) JSON-LD metadata and human-readable TOML format.
 
 ## Overview
 
 This library provides bidirectional conversion between Croissant dataset metadata formats:
-
 - **JSON-LD**: Machine-readable format following schema.org vocabulary
 - **TOML**: Human-readable configuration format with comments and structure
 
@@ -185,7 +185,7 @@ field_mappings = {
 
 ## Project Structure
 
-```bash
+```
 croissant_toml/
 ├── __init__.py         # Package initialization
 ├── cli.py              # Command-line interface
@@ -240,3 +240,9 @@ MIT License - see LICENSE file for details.
 - [ ] Better error reporting and recovery
 - [ ] Integration with Croissant validation tools
 - [ ] Support for JSON-LD frames and compaction
+'''
+
+with open("croissant_toml/README.md", "w") as f:
+    f.write(readme_content)
+
+print("Created croissant_toml/README.md")

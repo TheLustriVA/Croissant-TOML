@@ -1,0 +1,13 @@
+[project]
+name = "croissant-toml"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.0.0",
+    "jsonschema>=4.0.0",
+    "rdflib>=6.0.0",
+    "rdflib-jsonld>=0.6.0",
+    "tomlkit>=0.11.0",
+]

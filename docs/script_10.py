@@ -1,0 +1,85 @@
+# Create sample JSON-LD file for testing
+sample_jsonld = '''{
+  "@context": {
+    "@vocab": "https://schema.org/",
+    "cr": "https://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "field": "cr:field",
+    "filename": "cr:filename",
+    "fileProperty": "cr:fileProperty",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isEnumeration": "cr:isEnumeration",
+    "jsonPath": "cr:jsonPath",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "name": "Sample Dataset",
+  "description": "A sample dataset for testing Croissant TOML converter",
+  "version": "1.0.0",
+  "url": "https://example.com/sample-dataset",
+  "license": "MIT",
+  "creator": {
+    "@type": "Person",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  "dateCreated": "2024-01-01",
+  "dateModified": "2024-01-15",
+  "cr:recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "name": "examples",
+      "description": "Example records with text and labels",
+      "cr:field": [
+        {
+          "@type": "cr:Field",
+          "name": "text",
+          "description": "Input text content",
+          "dataType": "sc:Text",
+          "source": {
+            "fileProperty": "text",
+            "fileObject": "data.csv"
+          }
+        },
+        {
+          "@type": "cr:Field", 
+          "name": "label",
+          "description": "Classification label",
+          "dataType": "sc:Text",
+          "source": {
+            "fileProperty": "label",
+            "fileObject": "data.csv"
+          }
+        }
+      ]
+    }
+  ],
+  "distribution": [
+    {
+      "@type": "sc:FileObject",
+      "name": "data.csv",
+      "description": "Main dataset file",
+      "contentUrl": "https://example.com/data.csv",
+      "encodingFormat": "text/csv",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}'''
+
+with open("sample.json", "w") as f:
+    f.write(sample_jsonld)
+
+print("Created sample.json")

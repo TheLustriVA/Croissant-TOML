@@ -5,7 +5,6 @@ A Python tool for converting between [Croissant/Croissant-RAI](https://github.co
 ## Overview
 
 This library provides bidirectional conversion between Croissant dataset metadata formats:
-
 - **JSON-LD**: Machine-readable format following schema.org vocabulary
 - **TOML**: Human-readable configuration format with comments and structure
 
@@ -185,7 +184,7 @@ field_mappings = {
 
 ## Project Structure
 
-```bash
+```
 croissant_toml/
 ├── __init__.py         # Package initialization
 ├── cli.py              # Command-line interface
