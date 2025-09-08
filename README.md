@@ -9,6 +9,18 @@ This library provides bidirectional conversion between Croissant dataset metadat
 - **JSON-LD**: Machine-readable format following schema.org vocabulary
 - **TOML**: Human-readable configuration format with comments and structure
 
+## Rationale
+
+TOML provides a far more accessible and genuinely open way of handling ML metadata than JSON-LD because of its human readability.
+
+The effort put into acknowledging bias, potential harm, and the unintentional reenforcement of existing power structures in modern ML metadata seems, to me, utterly wasted if that very documentation can't be easily read by non-technical people.
+
+I will be adding more tooling and specifications here as I make them.
+
+I'm proud of the progress we as a discipline have made in ethical AI and I look forward to the industry itself catching up.
+
+For more of my work on ethical AI and documentation, start here: [The Pile Datasheet](https://arxiv.org/abs/2201.07311)
+
 ## Features
 
 - ✅ **Bidirectional conversion**: JSON-LD ↔ TOML

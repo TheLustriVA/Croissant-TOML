@@ -6,106 +6,160 @@ import tomlkit
 
 def generate_toml_from_dict(data: Dict[str, Any], output_path: str):
     """Generate human-friendly TOML from normalized dictionary."""
-    
+
     # Load schema for field descriptions
-    schema_path = Path(__file__).parent / 'schema.json'
-    with open(schema_path, 'r') as f:
-        schema = json.load(f)
-    
+    try:
+        schema_path = Path(__file__).parent / 'schema.json'
+        with open(schema_path, 'r') as f:
+            schema = json.load(f)
+    except FileNotFoundError:
+        schema = {}  # Fallback if schema not found
+
     doc = tomlkit.document()
-    
+
     # Add header comment
     doc.add(tomlkit.comment("Croissant Dataset Metadata"))
     doc.add(tomlkit.comment("Generated from JSON-LD format"))
     doc.add(tomlkit.nl())
-    
-    # Add metadata section
+
+    # Add metadata section as a table
     if 'metadata' in data and data['metadata']:
-        doc.add("metadata", _build_metadata_section(data['metadata'], schema))
-    
-    # Add record sets section
+        metadata_table = _build_metadata_table(data['metadata'], schema)
+        doc.add("metadata", metadata_table)
+        doc.add(tomlkit.nl())
+
+    # Add record sets as Array of Tables (AOT)
     if 'record_sets' in data and data['record_sets']:
+        _add_record_sets_aot(doc, data['record_sets'], schema)
         doc.add(tomlkit.nl())
-        doc.add("record_sets", _build_record_sets_section(data['record_sets'], schema))
-    
-    # Add distributions section
+
+    # Add distributions as Array of Tables (AOT)
     if 'distributions' in data and data['distributions']:
-        doc.add(tomlkit.nl())
-        doc.add("distributions", _build_distributions_section(data['distributions'], schema))
-    
+        _add_distributions_aot(doc, data['distributions'], schema)
+
     # Write to file
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(tomlkit.dumps(doc))
 
 
-def _build_metadata_section(metadata: Dict[str, Any], schema: Dict[str, Any]) -> tomlkit.table:
-    """Build metadata section with comments."""
+def _build_metadata_table(metadata: Dict[str, Any], schema: Dict[str, Any]) -> tomlkit.table:
+    """Build metadata section as a proper TOML table."""
     table = tomlkit.table()
-    
-    # Core metadata fields with comments
+
+    # Core metadata fields in logical order
     field_order = ['name', 'description', 'version', 'url', 'license', 'creator', 'date_created', 'date_modified']
-    
+
+    # Add fields in order
     for field in field_order:
         if field in metadata:
-            # Add field comment if available in schema
-            field_desc = schema.get('properties', {}).get('metadata', {}).get('properties', {}).get(field, {}).get('description')
-            if field_desc:
-                table.add(tomlkit.comment(f"{field_desc}"))
-            
-            table.add(field, metadata[field])
-            table.add(tomlkit.nl())
-    
+            _add_field_with_comment(table, field, metadata[field], schema)
+
     # Add remaining fields
     for key, value in metadata.items():
         if key not in field_order:
             table.add(key, value)
-    
+
     return table
 
 
-def _build_record_sets_section(record_sets: list, schema: Dict[str, Any]) -> tomlkit.array:
-    """Build record sets section."""
-    array = tomlkit.array()
-    
+def _add_field_with_comment(table: tomlkit.table, field: str, value: Any, schema: Dict[str, Any]):
+    """Add field to table with optional comment from schema."""
+    # Try to get field description from schema
+    try:
+        field_desc = schema.get('properties', {}).get('metadata', {}).get('properties', {}).get(field, {}).get('description')
+        if field_desc:
+            table.add(tomlkit.comment(field_desc))
+    except ValueError:
+        pass
+
+    table.add(field, value)
+
+
+def _add_record_sets_aot(doc: tomlkit.document, record_sets: list, schema: Dict[str, Any]):
+    """Add record sets as Array of Tables."""
+
     for record_set in record_sets:
-        if isinstance(record_set, dict):
-            rs_table = tomlkit.table()
-            
-            # Add common record set fields
-            for key, value in record_set.items():
+        if not isinstance(record_set, dict):
+            continue
+
+        # Create table for this record set
+        rs_table = tomlkit.table()
+
+        # Add basic record set fields
+        basic_fields = ['name', 'description', '@type']
+        for field in basic_fields:
+            if field in record_set:
+                rs_table.add(field, record_set[field])
+
+        # Handle fields array within record set
+        if 'field' in record_set and isinstance(record_set['field'], list):
+            for field in record_set['field']:
+                if isinstance(field, dict):
+                    field_table = tomlkit.table()
+
+                    # Add all field properties
+                    for key, value in field.items():
+                        field_table.add(key, value)
+
+                    # Add to record set as nested Array of Tables
+                    if "field" not in rs_table:
+                        rs_table.add("field", tomlkit.aot())
+                    rs_table["field"].append(field_table)
+
+        # Add other record set properties
+        for key, value in record_set.items():
+            if key not in basic_fields + ['field']:
                 rs_table.add(key, value)
-            
-            array.append(rs_table)
-        else:
-            array.append(record_set)
-    
-    return array
+
+        # Add record set to document as Array of Tables
+        if "record_sets" not in doc:
+            doc.add("record_sets", tomlkit.aot())
+        doc["record_sets"].append(rs_table)
 
 
-def _build_distributions_section(distributions: list, schema: Dict[str, Any]) -> tomlkit.array:
-    """Build distributions section."""
-    array = tomlkit.array()
-    
+def _add_distributions_aot(doc: tomlkit.document, distributions: list, schema: Dict[str, Any]):
+    """Add distributions as Array of Tables."""
+
     for distribution in distributions:
-        if isinstance(distribution, dict):
-            dist_table = tomlkit.table()
-            
-            # Add common distribution fields
-            for key, value in distribution.items():
-                dist_table.add(key, value)
-            
-            array.append(dist_table)
-        else:
-            array.append(distribution)
-    
-    return array
+        if not isinstance(distribution, dict):
+            continue
+
+        # Create table for this distribution
+        dist_table = tomlkit.table()
+
+        # Add all distribution properties
+        for key, value in distribution.items():
+            dist_table.add(key, value)
+
+        # Add distribution to document as Array of Tables
+        if "distributions" not in doc:
+            doc.add("distributions", tomlkit.aot())
+        doc["distributions"].append(dist_table)
 
 
 def dict_to_toml_string(data: Dict[str, Any]) -> str:
     """Convert dictionary to TOML string."""
     doc = tomlkit.document()
-    
+
+    # Handle metadata as table
+    if 'metadata' in data:
+        doc.add('metadata', data['metadata'])
+
+    # Handle arrays as Array of Tables
     for key, value in data.items():
-        doc.add(key, value)
-    
+        if key == 'metadata':
+            continue
+        elif isinstance(value, list) and value and isinstance(value[0], dict):
+            # Array of objects -> Array of Tables
+            aot = tomlkit.aot()
+            for item in value:
+                if isinstance(item, dict):
+                    table = tomlkit.table()
+                    for k, v in item.items():
+                        table.add(k, v)
+                    aot.append(table)
+            doc.add(key, aot)
+        else:
+            doc.add(key, value)
+
     return tomlkit.dumps(doc)
