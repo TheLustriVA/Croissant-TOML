@@ -1,5 +1,7 @@
 # Croissant TOML Converter
 
+![banner of a croissant and the word TOML in front a blue abstract background with water reflecting underneath](https://imgur.com/a/War3KIj)
+
 A Python tool for converting between [Croissant/Croissant-RAI](https://github.com/mlcommons/croissant) JSON-LD metadata and human-readable TOML format.
 
 ## Overview
