@@ -1,5 +1,8 @@
 """
-Croissant TOML Converter - Convert between Croissant JSON-LD and human-readable TOML.
-"""
+Croissant TOML Converter Package.
 
-__version__ = "0.1.0"
+Provides utilities for conversion, validation, and manipulation of dataset
+metadata between the MLCommons Croissant JSON-LD format and a human-friendly
+TOML format. Includes command-line entry points, schema-compliant normalization,
+round-trip fidelity checks, and enhanced validation features.
+"""

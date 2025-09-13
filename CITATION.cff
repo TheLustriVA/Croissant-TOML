@@ -1,0 +1,37 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Croissant-TOML: A Human-Readable TOML Specification for ML Dataset Metadata"
+authors:
+  - family-names: "Bicheno"
+    given-names: "Kieran"
+    orcid: "https://orcid.org/0000-0000-0000-0000"  # Replace with actual ORCID
+    affiliation: "Independent Researcher"
+version: 1.0.0
+date-released: 2024-12-09
+url: "https://github.com/TheLustriVA/Croissant-TOML"
+repository-code: "https://github.com/TheLustriVA/Croissant-TOML"
+abstract: >-
+  This software implements a TOML (Tom's Obvious, Minimal Language) format
+  that precisely matches the requirements of the Croissant metadata standard
+  and its Responsible AI (RAI) extension while maximizing human readability.
+  The tool provides bidirectional conversion between Croissant/Croissant-RAI
+  JSON-LD metadata and human-readable TOML format, making ML dataset
+  documentation more accessible to researchers and practitioners.
+keywords:
+  - machine learning
+  - metadata
+  - TOML
+  - JSON-LD
+  - croissant
+  - responsible AI
+  - dataset documentation
+license: CC0-1.0
+preferred-citation:
+  type: software
+  title: "Croissant-TOML: A Human-Readable TOML Specification for ML Dataset Metadata"
+  authors:
+    - family-names: "Bicheno"
+      given-names: "Kieran"
+  year: 2024
+  url: "https://github.com/TheLustriVA/Croissant-TOML"

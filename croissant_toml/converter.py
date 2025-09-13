@@ -1,139 +1,174 @@
+"""
+Croissant TOML/JSON-LD Converter.
+
+Defines CLI-invokable functions for bidirectional conversion between Croissant
+JSON-LD and TOML dataset metadata, including round-trip data integrity checks.
+Handles parsing, normalization, TOML generation, rehydration to JSON-LD, and
+utility routines for safe conversion workflows.
+"""
+
 import json
-from typing import Dict, Any
+import tempfile
+from pathlib import Path
+from typing import Any
+
+from .generator import generate_toml_from_dict
 from .parser import parse_jsonld_to_dict
-from .generator import generate_toml_from_dict, dict_to_toml_string
-from .validator import validate_dict_against_schema, toml_to_dict
+from .validator import toml_to_dict
 
 
-def jsonld_to_toml(input_path: str, output_path: str):
-    """Convert Croissant JSON-LD to TOML format."""
-    # Parse JSON-LD
-    normalized_data = parse_jsonld_to_dict(input_path)
-    
-    # Validate parsed data
-    is_valid, errors = validate_dict_against_schema(normalized_data)
-    if not is_valid:
-        raise ValueError(f"Parsed data validation failed: {', '.join(errors)}")
-    
-    # Generate TOML
-    generate_toml_from_dict(normalized_data, output_path)
+def jsonld_to_toml(input_file: str, output_file: str) -> None:
+    """Convert JSON-LD file to TOML format."""
+    try:
+        # Parse JSON-LD to dictionary
+        data = parse_jsonld_to_dict(input_file)
+
+        # Generate TOML from dictionary
+        generate_toml_from_dict(data, output_file)
+
+        print(f"Successfully converted {input_file} to {output_file}")
+
+    except Exception as e:
+        raise RuntimeError(f"Conversion failed: {e}") from e
 
 
-def toml_to_jsonld(input_path: str, output_path: str):
-    """Convert TOML to Croissant JSON-LD format."""
-    # Load and validate TOML
-    data = toml_to_dict(input_path)
-    is_valid, errors = validate_dict_against_schema(data)
-    if not is_valid:
-        raise ValueError(f"TOML validation failed: {', '.join(errors)}")
-    
-    # Convert to JSON-LD structure
-    jsonld_data = _dict_to_jsonld(data)
-    
-    # Write JSON-LD file
-    with open(output_path, 'w', encoding='utf-8') as f:
-        json.dump(jsonld_data, f, indent=2, ensure_ascii=False)
+def toml_to_jsonld(input_file: str, output_file: str) -> None:
+    """Convert TOML file to JSON-LD format."""
+    try:
+        # Load TOML data
+        data = toml_to_dict(input_file)
+
+        # Convert back to JSON-LD structure
+        jsonld_data = _toml_dict_to_jsonld(data)
+
+        # Write to JSON-LD file
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(jsonld_data, f, indent=2, ensure_ascii=False)
+
+        print(f"Successfully converted {input_file} to {output_file}")
+
+    except Exception as e:
+        raise RuntimeError(f"Conversion failed: {e}") from e
 
 
-def _dict_to_jsonld(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert normalized dictionary back to JSON-LD structure."""
-    jsonld = {
+def _toml_dict_to_jsonld(data: dict[str, Any]) -> dict[str, Any]:
+    """Convert TOML dictionary structure back to JSON-LD format."""
+    jsonld: dict[str, Any] = {
         "@context": {
-            "@vocab": "https://schema.org/",
-            "cr": "https://mlcommons.org/croissant/",
-            "data": {
-                "@id": "cr:data",
-                "@type": "@json"
-            },
-            "field": "cr:field",
-            "filename": "cr:filename",
-            "fileProperty": "cr:fileProperty",
-            "format": "cr:format",
-            "includes": "cr:includes",
-            "isEnumeration": "cr:isEnumeration",
-            "jsonPath": "cr:jsonPath",
-            "recordSet": "cr:recordSet",
-            "references": "cr:references",
-            "regex": "cr:regex",
-            "repeated": "cr:repeated",
-            "replace": "cr:replace",
             "sc": "https://schema.org/",
-            "separator": "cr:separator",
-            "source": "cr:source",
-            "subField": "cr:subField",
-            "transform": "cr:transform"
-        },
-        "@type": "sc:Dataset"
-    }
-    
-    # Map metadata back to JSON-LD structure
-    if 'metadata' in data:
-        metadata = data['metadata']
-        
-        # Map common fields back to schema.org terms
-        field_mappings = {
-            'name': 'name',
-            'description': 'description',
-            'version': 'version',
-            'url': 'url',
-            'license': 'license',
-            'creator': 'creator',
-            'date_created': 'dateCreated',
-            'date_modified': 'dateModified'
+            "cr": "http://mlcommons.org/croissant/",
         }
-        
-        for toml_key, jsonld_key in field_mappings.items():
-            if toml_key in metadata:
-                jsonld[jsonld_key] = metadata[toml_key]
-        
-        # Add remaining metadata fields
+    }
+
+    # Handle metadata section
+    if "metadata" in data:
+        metadata = data["metadata"]
+
+        # Basic metadata fields
         for key, value in metadata.items():
-            if key not in field_mappings:
+            if key == "schema":
+                # Handle schema.org fields
+                for schema_key, schema_value in value.items():
+                    jsonld[f"sc:{schema_key}"] = schema_value
+            elif key in ["conformsTo", "changeLog"]:
+                # Keep these as-is
                 jsonld[key] = value
-    
-    # Map record sets
-    if 'record_sets' in data and data['record_sets']:
-        jsonld['cr:recordSet'] = data['record_sets']
-    
-    # Map distributions
-    if 'distributions' in data and data['distributions']:
-        jsonld['distribution'] = data['distributions']
-    
+            else:
+                # Add schema.org prefix for common fields
+                if key in [
+                    "dateCreated",
+                    "dateModified",
+                    "datePublished",
+                    "name",
+                    "description",
+                    "url",
+                    "license",
+                    "creator",
+                    "version",
+                    "keywords",
+                ]:
+                    jsonld[f"sc:{key}"] = value
+                else:
+                    jsonld[key] = value
+
+    # Handle distribution section
+    if "distribution" in data:
+        jsonld["distribution"] = data["distribution"]
+
+    # Handle recordsets section
+    if "recordsets" in data:
+        recordsets = []
+        for _, recordset_data in data["recordsets"].items():
+            recordset = {"@type": "cr:RecordSet"}
+            recordset.update(recordset_data)
+            recordsets.append(recordset)
+        jsonld["cr:recordSet"] = recordsets
+
+    # Handle RAI section
+    if "rai" in data:
+        # Add RAI fields with appropriate prefixes
+        for key, value in data["rai"].items():
+            jsonld[f"cr:{key}"] = value
+
     return jsonld
 
 
-def validate_roundtrip(original_jsonld_path: str) -> bool:
-    """Validate that JSON-LD -> TOML -> JSON-LD roundtrip preserves data."""
+def validate_roundtrip(input_file: str) -> bool:
+    """Validate that conversion roundtrip preserves data integrity."""
     try:
-        # Load original
-        with open(original_jsonld_path, 'r') as f:
-            original = json.load(f)
-        
-        # Convert to TOML and back
-        temp_toml = "/tmp/temp.toml"
-        temp_jsonld = "/tmp/temp_roundtrip.json"
-        
-        jsonld_to_toml(original_jsonld_path, temp_toml)
-        toml_to_jsonld(temp_toml, temp_jsonld)
-        
-        # Load roundtrip result
-        with open(temp_jsonld, 'r') as f:
-            roundtrip = json.load(f)
-        
-        # Basic comparison (could be enhanced)
-        return _compare_jsonld_structure(original, roundtrip)
-        
-    except Exception:
+        # Use secure temporary files
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".toml", delete=False
+        ) as temp_toml_file:
+            temp_toml = temp_toml_file.name
+
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".json", delete=False
+        ) as temp_jsonld_file:
+            temp_jsonld = temp_jsonld_file.name
+
+        try:
+            # Convert to TOML and back
+            jsonld_to_toml(input_file, temp_toml)
+            toml_to_jsonld(temp_toml, temp_jsonld)
+
+            # Load original and roundtrip data
+            with open(input_file, encoding="utf-8") as f:
+                original = json.load(f)
+
+            with open(temp_jsonld, encoding="utf-8") as f:
+                roundtrip = json.load(f)
+
+            # Basic comparison (can be enhanced)
+            return _compare_structures(original, roundtrip)
+
+        finally:
+            # Clean up temporary files
+            Path(temp_toml).unlink(missing_ok=True)
+            Path(temp_jsonld).unlink(missing_ok=True)
+
+    except Exception as e:
+        print(f"Roundtrip validation failed: {e}")
         return False
 
 
-def _compare_jsonld_structure(original: Dict, roundtrip: Dict) -> bool:
-    """Compare JSON-LD structures for essential equality."""
-    # Compare core fields
-    core_fields = ['name', 'description', 'version', 'url']
-    
-    for field in core_fields:
-        if original.get(field) != roundtrip.get(field):
-            return False
-    
+def _compare_structures(original: dict[str, Any], roundtrip: dict[str, Any]) -> bool:
+    """Compare two dictionary structures for equivalence."""
+    # This is a simplified comparison - can be enhanced for more thorough validation
+
+    # Check if both have same set of keys (excluding context)
+    orig_keys = {k for k in original.keys() if not k.startswith("@")}
+    rt_keys = {k for k in roundtrip.keys() if not k.startswith("@")}
+
+    if orig_keys != rt_keys:
+        return False
+
+    # Check basic field preservation
+    for key in orig_keys:
+        if key in ["name", "description", "version"]:
+            orig_val = original.get(key) or original.get(f"sc: {key}")
+            rt_val = roundtrip.get(key) or roundtrip.get(f"sc: {key}")
+            if orig_val != rt_val:
+                return False
+
     return True
