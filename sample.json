@@ -54,7 +54,7 @@
           }
         },
         {
-          "@type": "cr:Field", 
+          "@type": "cr:Field",
           "name": "label",
           "description": "Classification label",
           "dataType": "sc:Text",

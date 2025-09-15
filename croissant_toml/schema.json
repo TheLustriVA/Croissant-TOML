@@ -72,7 +72,7 @@
       }
     },
     "distributions": {
-      "type": "array", 
+      "type": "array",
       "description": "Dataset distributions/files",
       "items": {
         "type": "object",

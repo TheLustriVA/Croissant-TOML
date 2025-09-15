@@ -11,7 +11,7 @@ This library provides bidirectional conversion between Croissant dataset metadat
 ## Features
 
 - ✅ **Bidirectional conversion**: JSON-LD ↔ TOML
-- ✅ **Context expansion**: Handles JSON-LD @context and prefixes  
+- ✅ **Context expansion**: Handles JSON-LD @context and prefixes
 - ✅ **Schema validation**: Validates TOML against Croissant schema
 - ✅ **CLI interface**: Simple command-line tools
 - ✅ **Human-friendly**: TOML output with comments and logical structure
@@ -96,7 +96,7 @@ from croissant_toml.converter import jsonld_to_toml, toml_to_jsonld
 # JSON-LD to TOML
 jsonld_to_toml('input.json', 'output.toml')
 
-# TOML to JSON-LD  
+# TOML to JSON-LD
 toml_to_jsonld('input.toml', 'output.json')
 ```
 
@@ -160,7 +160,7 @@ field_mappings = {
 }
 ```
 
-### 3. Update Generator  
+### 3. Update Generator
 
 Add field to ordering and comments in `croissant_toml/generator.py`:
 
@@ -235,7 +235,7 @@ MIT License - see LICENSE file for details.
 ## Future Enhancements
 
 - [ ] Support for more Croissant-RAI fields
-- [ ] Configurable TOML formatting options  
+- [ ] Configurable TOML formatting options
 - [ ] Better error reporting and recovery
 - [ ] Integration with Croissant validation tools
 - [ ] Support for JSON-LD frames and compaction
