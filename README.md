@@ -1,7 +1,7 @@
 # Croissant-TOML: Human-Readable ML Dataset Metadata
 
 [![CI](https://github.com/TheLustriVA/Croissant-TOML/actions/workflows/ci.yml/badge.svg)](https://github.com/TheLustriVA/Croissant-TOML/actions/workflows/ci.yml)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: CC0-1.0](https://img.shields.io/badge/License-CC0_1.0-lightgrey.svg)](http://creativecommons.org/publicdomain/zero/1.0/)
 
 A Python tool for converting between [Croissant/Croissant-RAI](https://github.com/mlcommons/croissant) JSON-LD metadata and human-readable TOML format, implementing the [Human-Readable TOML Specification for Croissant and Croissant-RAI Metadata](https://arxiv.org/abs/XXXX.XXXXX).
@@ -9,6 +9,7 @@ A Python tool for converting between [Croissant/Croissant-RAI](https://github.co
 ## Overview
 
 This library provides bidirectional conversion between Croissant dataset metadata formats:
+
 - **JSON-LD**: Machine-readable format following schema.org vocabulary and Croissant specifications
 - **TOML**: Human-readable configuration format with comments, logical structure, and enhanced accessibility
 
@@ -225,6 +226,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) a
 ## Academic Use
 
 This project supports academic research and welcomes:
+
 - Collaboration on research papers
 - Integration with other academic tools
 - Evaluation and feedback studies
@@ -245,7 +247,7 @@ If you use this software in your research, please cite:
 
 ## Project Structure
 
-```
+```bash
 croissant_toml/
 ├── __init__.py           # Package initialization
 ├── cli.py                # Command-line interface
